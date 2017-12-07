@@ -11,6 +11,6 @@ jobs:
       - docker tag apm $DOCKER_USERNAME/apm
       - docker push $DOCKER_USERNAME/apm
     - stage: test
-      script: docker run --rm -p 80:80 $DOCKER_USERNAME/apm
-    - script: docker run --rm -p 80:80 $DOCKER_USERNAME/apm 
+      script: docker run -d --rm -p 80:80 $DOCKER_USERNAME/apm
+    - script: docker run -d --rm -p 80:80 $DOCKER_USERNAME/apm 
 
