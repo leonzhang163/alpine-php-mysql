@@ -3,14 +3,19 @@ dist: trusty
 
 jobs:
   include:
+    - stage: check Dockerfile
+      script: ./scripts/test-dockerfile.sh
+    - stage: check entrypoint.sh
+      script: ./scripts/test-entrypoint.sh
     - stage: build docker image
       script:
       - docker login -u="$DOCKER_USERNAME" -p="$DOCKER_PASSWORD"
       - docker build -t apm .
       - docker images
-      - docker tag apm $DOCKER_USERNAME/apm
-      - docker push $DOCKER_USERNAME/apm
-    - stage: test
-      script: docker run -d --rm -p 80:80 $DOCKER_USERNAME/apm
-    - script: docker run -d --rm -p 80:80 $DOCKER_USERNAME/apm 
+    - stage: push and waiting manually review
+      - docker tag apm $DOCKER_USERNAME/apm:review
+      - docker push $DOCKER_USERNAME/apm:review
+    - stage: test and waiting manually review
+      script: docker run -d --rm -p 80:80 $DOCKER_USERNAME/apm:review
+    
 
