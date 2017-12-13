@@ -2,23 +2,18 @@ sudo: true
 dist: trusty
 before_install:
      - chmod +x ./scripts/test-dockerfile.sh
-     - chmod +x ./scripts/test-entrypoint.sh
 jobs:
   include:
     - stage: check Dockerfile
       script: ./scripts/test-dockerfile.sh
-    - stage: check entrypoint.sh
-      script: ./scripts/test-entrypoint.sh
-    - stage: build docker image
+    - stage: build docker image and push for review.
       script:
       - docker login -u="$DOCKER_USERNAME" -p="$DOCKER_PASSWORD"
       - docker build -t apm .
       - docker images
-    - stage: push and waiting manually review
-      script:
       - docker tag apm $DOCKER_USERNAME/apm:review
       - docker push $DOCKER_USERNAME/apm:review
-    - stage: test and waiting manually review
-      script: docker run -d --rm -p 80:80 $DOCKER_USERNAME/apm:review
+#    - stage: test and waiting manually review
+#      script: docker run -d --rm -p 80:80 $DOCKER_USERNAME/apm:review
     
 
