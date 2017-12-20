@@ -4,7 +4,6 @@ echo "Show ENV Paramters:"
 # set to true if the job is allowed to fail.
 # set to false if the job is not allowed to fail.
 echo "TRAVIS_ALLOW_FAILURE: $TRAVIS_ALLOW_FAILURE"
-
 # TRAVIS_BRANCH: 
 # for push builds, or builds not triggered by a pull request, this is the name of the branch.
 # for builds triggered by a pull request this is the name of the branch targeted by the pull request.
@@ -60,39 +59,69 @@ echo "TRAVIS_TEST_RESULT: $TRAVIS_TEST_RESULT"
 echo "TRAVIS_TAG: $TRAVIS_TAG"
 
 
-echo "test Dockerfile"
+test_Dockerfile(){
+    testSSH=$(cat Dockerfile | grep EXPOSE | grep 2222)
+    if [ -z "$testSSH" ]; then 
+        echo "FAILED - PORT 2222 isn't opened, SSH isn't working!!!"
+        exit 1
+    else
+        echo "$testSSH"
+        echo "PASSED - PROT 2222 is opened."
+    fi
 
-testSSH=$(cat Dockerfile | grep EXPOSE | grep 2222)
-if [ -z "$testSSH" ]; then 
-    echo "FAILED - PORT 2222 isn't opened, SSH isn't working!!!"
-    exit 1
-else
-    echo "$testSSH"
-    echo "PASSED - PROT 2222 is opened."
-fi
+    testVOLUME=$(cat Dockerfile | grep VOLUME)
+    if [ -z "$testVOLUME" ]; then 
+        echo "PASSED - Great, there is no VOLUME lines."    
+    else
+        echo "$testVOLUME"
+        echo "FAILED - These VOLUME lines should not be existed!!!"
+        exit 1
+    fi
+}
 
-testVOLUME=$(cat Dockerfile | grep VOLUME)
-if [ -z "$testVOLUME" ]; then 
-    echo "PASSED - Great, there is no VOLUME lines."    
-else
-    echo "$testVOLUME"
-    echo "FAILED - These VOLUME lines should not be existed!!!"
-    exit 1
-fi
+build_image(){
+    docker login -u="$DOCKER_USERNAME" -p="$DOCKER_PASSWORD"
+    docker build -t apm .
+    testBuildImage = $(docker images | grep apm)
+    if [ -z "$testBuildImage" ]; then 
+        echo "FAILED - Build fail!!!"
+        exit 1
+    else
+        echo "$testBuildImage"
+        echo "PASSED - Build Successfully!!!."
+    fi
+}
 
+
+
+echo "================================================="
+echo "Stage1 - Verify Dockerfile"
+test_Dockerfile
+echo "================================================="
+
+echo "Stage2 - Build Image"
+build_image
+echo "================================================="
+
+echo "Stage3 - Set Tag and Push"
+echo "Build Number: $TRAVIS_BUILD_NUMBER"
 if [ $TRAVIS_PULL_REQUEST ]; then 
-    echo "this is push."    
+    echo "This is PUSH."
+    TAG = "PUSH$TRAVIS_BUILD_NUMBER"    
 else
-    echo "this is PR."
-    exit 1
+    echo "This is PR."
+    TAG = "PR$TRAVIS_BUILD_NUMBER"    
 fi
+echo "TAG: $TAG"
+docker tag apm $DOCKER_USERNAME/apm:"$TAG"
+docker push $DOCKER_USERNAME/apm:"$TAG"
+echo "================================================="
 
-#if [ "$TRAVIS_COMMIT_MESSAGE" contains 'Merge' ]; then 
-#    echo "this is push."    
-#else
-#    echo "this is PR."
-#    exit 1
-#fi
+echo "Stage4 - PULL and Verify"
+docker run -d --rm -p 80:80 $DOCKER_USERNAME/apm:review
+echo "PULL and run successfully, you can manually verify it."
+echo "================================================="
 
-# Docker file is OK, return 0
+
+# Everything is OK, return 0
 exit 0
