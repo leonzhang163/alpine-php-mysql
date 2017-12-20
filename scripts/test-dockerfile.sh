@@ -107,10 +107,10 @@ echo "Stage3 - Set Tag and Push"
 echo "Build Number: $TRAVIS_BUILD_NUMBER"
 if [ $TRAVIS_PULL_REQUEST ]; then 
     echo "This is PUSH."
-    TAG = "PUSH$TRAVIS_BUILD_NUMBER"    
+    TAG="PUSH$TRAVIS_BUILD_NUMBER"    
 else
     echo "This is PR."
-    TAG = "PR$TRAVIS_BUILD_NUMBER"    
+    TAG="PR$TRAVIS_BUILD_NUMBER"    
 fi
 echo "TAG: $TAG"
 docker tag apm $DOCKER_USERNAME/apm:"$TAG"
