@@ -1,4 +1,4 @@
-echo "test Dockerfile"
+echo "Show ENV Paramters:"
 
 # TRAVIS_ALLOW_FAILURE: 
 # set to true if the job is allowed to fail.
@@ -60,23 +60,39 @@ echo "TRAVIS_TEST_RESULT: $TRAVIS_TEST_RESULT"
 echo "TRAVIS_TAG: $TRAVIS_TAG"
 
 
+echo "test Dockerfile"
+
 testSSH=$(cat Dockerfile | grep EXPOSE | grep 2222)
 if [ -z "$testSSH" ]; then 
-    echo "PORT 2222 isn't opened, SSH isn't working!!!"
+    echo "FAILED - PORT 2222 isn't opened, SSH isn't working!!!"
     exit 1
 else
     echo "$testSSH"
-    echo "PROT 2222 is opened."
+    echo "PASSED - PROT 2222 is opened."
 fi
 
 testVOLUME=$(cat Dockerfile | grep VOLUME)
 if [ -z "$testVOLUME" ]; then 
-    echo "Great, there is no VOLUME lines."    
+    echo "PASSED - Great, there is no VOLUME lines."    
 else
     echo "$testVOLUME"
-    echo "These VOLUME lines should not be existed!!!"
+    echo "FAILED - These VOLUME lines should not be existed!!!"
     exit 1
 fi
+
+if [ $TRAVIS_PULL_REQUEST ]; then 
+    echo "this is push."    
+else
+    echo "this is PR."
+    exit 1
+fi
+
+#if [ "$TRAVIS_COMMIT_MESSAGE" contains 'Merge' ]; then 
+#    echo "this is push."    
+#else
+#    echo "this is PR."
+#    exit 1
+#fi
 
 # Docker file is OK, return 0
 exit 0
