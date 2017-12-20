@@ -82,7 +82,7 @@ test_Dockerfile(){
 build_image(){
     docker login -u="$DOCKER_USERNAME" -p="$DOCKER_PASSWORD"
     docker build -t apm .
-    testBuildImage = $(docker images | grep apm)
+    testBuildImage=$(docker images | grep apm)
     if [ -z "$testBuildImage" ]; then 
         echo "FAILED - Build fail!!!"
         exit 1
