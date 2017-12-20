@@ -105,21 +105,29 @@ echo "================================================="
 
 echo "Stage3 - Set Tag and Push"
 echo "Build Number: $TRAVIS_BUILD_NUMBER"
-if [ $TRAVIS_PULL_REQUEST ]; then 
-    echo "This is PUSH."
-    TAG="PUSH$TRAVIS_BUILD_NUMBER"    
-else
-    echo "This is PR."
-    TAG="PR$TRAVIS_BUILD_NUMBER"    
-fi
-echo "TAG: $TAG"
-docker tag apm $DOCKER_USERNAME/apm:"$TAG"
-docker push $DOCKER_USERNAME/apm:"$TAG"
+docker tag apm $DOCKER_USERNAME/apm:"$TRAVIS_BUILD_NUMBER"
+testBuildImage=$(docker images | grep "$TRAVIS_BUILD_NUMBER")
+    if [ -z "$testBuildImage" ]; then 
+        echo "FAILED - Set TAG Failed!!!"
+        exit 1
+    else
+        echo "$testBuildImage"
+        echo "PASSED - Set TAG Successfully!."
+    fi
+docker push $DOCKER_USERNAME/apm:"$TRAVIS_BUILD_NUMBER"
+docker rm $DOCKER_USERNAME/apm:"$TRAVIS_BUILD_NUMBER"
 echo "================================================="
 
 echo "Stage4 - PULL and Verify"
-docker run -d --rm -p 80:80 $DOCKER_USERNAME/apm:review
-echo "PULL and run successfully, you can manually verify it."
+docker run -d --rm -p 80:80 $DOCKER_USERNAME/:"$TRAVIS_BUILD_NUMBER"
+testBuildImage=$(docker images | grep "$TRAVIS_BUILD_NUMBER")
+    if [ -z "$testBuildImage" ]; then 
+        echo "FAILED - Docker pull and run Failed!!!"
+        exit 1
+    else
+        echo "$testBuildImage"
+        echo "PASSED - SetDocker pull and run Successfully!. You can manually verify it!"
+    fi
 echo "================================================="
 
 
