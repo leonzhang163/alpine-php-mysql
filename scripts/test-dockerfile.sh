@@ -58,9 +58,12 @@ echo "TRAVIS_TEST_RESULT: $TRAVIS_TEST_RESULT"
 # TRAVIS_TAG: If the current build is for a git tag, this variable is set to the tag’s name.
 echo "TRAVIS_TAG: $TRAVIS_TAG"
 
-function _do()
+
+# If script run to error, exist -1;
+function _do() 
 {
-        "$@" || { alert "exec failed: ""$@"; exit -1; }
+#        "$@" || { alert "exec failed: ""$@"; exit -1; }
+        "$@" || { exit -1; }
 }
 
 test_Dockerfile(){
@@ -96,7 +99,20 @@ build_image(){
     fi
 }
 
-
+setTag_push_rm(){
+    _do docker tag apm $DOCKER_USERNAME/apm:"$TAG"
+    _do testBuildImage=$(docker images | grep "$TAG")
+    if [ -z "$testBuildImage" ]; then 
+        echo "FAILED - Set TAG Failed!!!"
+        exit 1
+    else
+        echo "$testBuildImage"
+        echo "PASSED - Set TAG Successfully!."
+    fi
+    _do docker push $DOCKER_USERNAME/apm:"$TAG"
+    _do docker rm $DOCKER_USERNAME/apm:"$TAG"
+    _do docker images
+}
 
 echo "================================================="
 echo "Stage1 - Verify Dockerfile"
@@ -109,55 +125,31 @@ echo "================================================="
 
 echo "Stage3 - Set Tag and Push"
 echo "Build Number: $TRAVIS_BUILD_NUMBER"
-latest01="false"
-TAG="$TRAVIS_BUILD_NUMBER"
 echo "TRAVIS_EVENT_TYPE:$TRAVIS_EVENT_TYPE"
 echo "TRAVIS_COMMIT_MESSAGE:$TRAVIS_COMMIT_MESSAGE"
-if ["$TRAVIS_EVENT_TYPE"=="push"]; then
+
+if [ "$TRAVIS_EVENT_TYPE" == "push" ]; then
     MegerPull="Meger Pull"
     Version="Version:"
-    if [[$TRAVIS_COMMIT_MESSAGE == $MegerPull*]]; then
+    if [[ $TRAVIS_COMMIT_MESSAGE == $MegerPull* ]]; then
         TAG="latest"
-        if [[$TRAVIS_COMMIT_MESSAGE == $Version*]]; then
+        setTag_push_rm()
+        if [[ $TRAVIS_COMMIT_MESSAGE == $Version* ]]; then
             TAG="0.1"
-            latest01="true"
-        fi
-    else
-        if [[$TRAVIS_COMMIT_MESSAGE == $Version*]]; then
+            setTag_push_rm()
+        fi 
+    else 
+        if [[ $TRAVIS_COMMIT_MESSAGE == $Version* ]]; then
             TAG="0.1"
-        fi
-    fi   
-    
-fi
-
-docker tag apm $DOCKER_USERNAME/apm:"$TAG"
-testBuildImage=$(docker images | grep "$TAG")
-    if [ -z "$testBuildImage" ]; then 
-        echo "FAILED - Set TAG Failed!!!"
-        exit 1
-    else
-        echo "$testBuildImage"
-        echo "PASSED - Set TAG Successfully!."
+            setTag_push_rm()
+        fi    
     fi
-_do docker push $DOCKER_USERNAME/apm:"$TAG"
-_do docker images
-
-if [latest01 == "true" ]; then
-    TAG2="latest"
-    docker tag $DOCKER_USERNAME/apm:"$TAG" $DOCKER_USERNAME/apm:"$TAG2"
-    testBuildImage=$(docker images | grep "$TAG2")
-        if [ -z "$testBuildImage" ]; then 
-            echo "FAILED - Set TAG latest Failed!!!"
-            exit 1
-        else
-            echo "$testBuildImage"
-            echo "PASSED - Set TAG latest Successfully!."
-        fi
-    _do docker push $DOCKER_USERNAME/apm:"$TAG2"
-    _do docker rm $DOCKER_USERNAME/apm:"$TAG2"
-    _do docker images
+else    
+    TAG="$TRAVIS_BUILD_NUMBER"
+    setTag_push_rm()
 fi
-_do docker rm $DOCKER_USERNAME/apm:"$TAG"
+
+
 
 echo "================================================="
 
