@@ -131,18 +131,20 @@ echo "TRAVIS_COMMIT_MESSAGE:$TRAVIS_COMMIT_MESSAGE"
 if [ "$TRAVIS_EVENT_TYPE" == "push" ]; then
     MegerPull="Meger Pull"
     Version="Version:"
+    pushed="false"
+    if [[ $TRAVIS_COMMIT_MESSAGE == $Version* ]]; then
+            TAG="0.1"
+            setTag_push_rm()
+            pushed="true"
+    fi 
     if [[ $TRAVIS_COMMIT_MESSAGE == $MegerPull* ]]; then
         TAG="latest"
         setTag_push_rm()
-        if [[ $TRAVIS_COMMIT_MESSAGE == $Version* ]]; then
-            TAG="0.1"
-            setTag_push_rm()
-        fi 
-    else 
-        if [[ $TRAVIS_COMMIT_MESSAGE == $Version* ]]; then
-            TAG="0.1"
-            setTag_push_rm()
-        fi    
+        pushed="true"       
+    fi
+    if [ "$pushed" == "false" ]; then
+        TAG="$TRAVIS_BUILD_NUMBER"
+        setTag_push_rm()
     fi
 else    
     TAG="$TRAVIS_BUILD_NUMBER"
