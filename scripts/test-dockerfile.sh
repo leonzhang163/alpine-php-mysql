@@ -109,18 +109,18 @@ echo "================================================="
 
 echo "Stage3 - Set Tag and Push"
 echo "Build Number: $TRAVIS_BUILD_NUMBER"
-latest01=false
+latest01="false"
 TAG="$TRAVIS_BUILD_NUMBER"
 echo "TRAVIS_EVENT_TYPE:$TRAVIS_EVENT_TYPE"
-echo "TRAVIS_COMMIT_MESSAGE :$TRATRAVIS_COMMIT_MESSAGE"
-if ["$TRAVIS_EVENT_TYPE"="push"]; then
+echo "TRAVIS_COMMIT_MESSAGE:$TRAVIS_COMMIT_MESSAGE"
+if ["$TRAVIS_EVENT_TYPE"=="push"]; then
     MegerPull="Meger Pull"
     Version="Version:"
     if [[$TRAVIS_COMMIT_MESSAGE == $MegerPull*]]; then
         TAG="latest"
         if [[$TRAVIS_COMMIT_MESSAGE == $Version*]]; then
             TAG="0.1"
-            latest01=true
+            latest01="true"
         fi
     else
         if [[$TRAVIS_COMMIT_MESSAGE == $Version*]]; then
@@ -142,7 +142,7 @@ testBuildImage=$(docker images | grep "$TAG")
 _do docker push $DOCKER_USERNAME/apm:"$TAG"
 _do docker images
 
-if [latest01]; then
+if [latest01 == "true" ]; then
     TAG2="latest"
     docker tag $DOCKER_USERNAME/apm:"$TAG" $DOCKER_USERNAME/apm:"$TAG2"
     testBuildImage=$(docker images | grep "$TAG2")
