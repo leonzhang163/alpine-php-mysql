@@ -88,8 +88,8 @@ test_Dockerfile(){
 
 build_image(){
     _do docker login -u="${DOCKER_USERNAME}" -p="${DOCKER_PASSWORD}"
-    _do docker build -t ${DOCKER_IMAGE_NAME} .
-    testBuildImage=$(docker images | grep ${DOCKER_IMAGE_NAME})
+    _do docker build -t "${DOCKER_IMAGE_NAME}" .
+    testBuildImage=$(docker images | grep "${DOCKER_IMAGE_NAME}")
     if [ -z "${testBuildImage}" ]; then 
         echo "FAILED - Build fail!!!"
         exit 1
@@ -100,7 +100,8 @@ build_image(){
 }
 
 setTag_push_rm(){
-    _do docker tag ${DOCKER_IMAGE_NAME} ${DOCKER_USERNAME}/apm:"${TAG}"
+    echo "TAG: ${TAG}"
+    _do docker tag "${DOCKER_IMAGE_NAME}" "${DOCKER_USERNAME}"/"${DOCKER_IMAGE_NAME}":"${TAG}"
     testBuildImage=$(docker images | grep "$TAG")
     if [ -z "${testBuildImage}" ]; then 
         echo "FAILED - Set TAG Failed!!!"
@@ -109,11 +110,11 @@ setTag_push_rm(){
         echo "${testBuildImage}"
         echo "PASSED - Set TAG Successfully!."
     fi
-    _do docker push ${DOCKER_USERNAME}/${DOCKER_IMAGE_NAME}:"${TAG}"
+    _do docker push "${DOCKER_USERNAME}"/"${DOCKER_IMAGE_NAME}":"${TAG}"
     echo "PASSED - Pushed  ${DOCKER_USERNAME}/${DOCKER_IMAGE_NAME}:${TAG} Successfully!."
     echo "Before rm - docker images"
     _do docker images
-    _do docker rm $DOCKER_USERNAME/${DOCKER_IMAGE_NAME}:"$TAG"
+    _do docker rm "${DOCKER_USERNAME}"/"${DOCKER_IMAGE_NAME}":"${TAG}"
     echo "After rm - docker images"
     _do docker images
 }
@@ -129,15 +130,18 @@ echo "================================================="
 
 echo "Stage3 - Set Tag and Push"
 echo "Build Number: ${TRAVIS_BUILD_NUMBER}"
-echo "TRAVIS_EVENT_TYPE:${TRAVIS_EVENT_TYPE}"
-echo "TRAVIS_COMMIT_MESSAGE:$}TRAVIS_COMMIT_MESSAGE}"
+echo "TRAVIS_EVENT_TYPE: ${TRAVIS_EVENT_TYPE}"
+echo "TRAVIS_COMMIT_MESSAGE: ${TRAVIS_COMMIT_MESSAGE}"
 
 if [ "$TRAVIS_EVENT_TYPE" == "push" ]; then
     MegerPull="Meger Pull"
     Version="Version:"
     pushed="false"
-    if [[ ${TRAVIS_COMMIT_MESSAGE} == $Version* ]]; then
-            TAG="0.1"
+    # get the line which contains "Version" form commit message.
+    version=$(echo "${TRAVIS_COMMIT_MESSAGE}" | grep "Version") 
+    if [ ! -z "${version}" ]; then
+            # remove left chars since ":"
+            TAG=${version#*:} 
             setTag_push_rm
             pushed="true"
     fi 
@@ -154,8 +158,6 @@ else
     TAG="${TRAVIS_BUILD_NUMBER}"
     setTag_push_rm
 fi
-
-
 
 echo "================================================="
 
