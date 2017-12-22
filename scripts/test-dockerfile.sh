@@ -134,7 +134,7 @@ echo "TRAVIS_EVENT_TYPE: ${TRAVIS_EVENT_TYPE}"
 echo "TRAVIS_COMMIT_MESSAGE: ${TRAVIS_COMMIT_MESSAGE}"
 
 if [ "$TRAVIS_EVENT_TYPE" == "push" ]; then
-    MegerPull="Meger Pull"
+    MegerPull="Merge pull"
     Version="Version:"
     pushed="false"
     # get the line which contains "Version" form commit message.
