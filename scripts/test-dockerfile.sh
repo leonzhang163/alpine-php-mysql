@@ -148,7 +148,7 @@ if [ "$TRAVIS_EVENT_TYPE" == "push" ]; then
     fi
 else    
     TAG="$TRAVIS_BUILD_NUMBER"
-    setTag_push_rm()
+    setTag_push_rm
 fi
 
 
