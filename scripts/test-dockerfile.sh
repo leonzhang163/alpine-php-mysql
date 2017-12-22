@@ -58,6 +58,7 @@ echo "TRAVIS_TEST_RESULT: $TRAVIS_TEST_RESULT"
 # TRAVIS_TAG: If the current build is for a git tag, this variable is set to the tag’s name.
 echo "TRAVIS_TAG: $TRAVIS_TAG"
 
+DOCKER_IMAGE_NAME="apm"
 
 # If script run to error, exist -1;
 function _do() 
@@ -67,49 +68,53 @@ function _do()
 
 test_Dockerfile(){
     testSSH=$(cat Dockerfile | grep EXPOSE | grep 2222)
-    if [ -z "$testSSH" ]; then 
+    if [ -z "${testSSH}" ]; then 
         echo "FAILED - PORT 2222 isn't opened, SSH isn't working!!!"
         exit 1
     else
-        echo "$testSSH"
+        echo "${testSSH}"
         echo "PASSED - PROT 2222 is opened."
     fi
 
     testVOLUME=$(cat Dockerfile | grep VOLUME)
-    if [ -z "$testVOLUME" ]; then 
+    if [ -z "${testVOLUME}" ]; then 
         echo "PASSED - Great, there is no VOLUME lines."    
     else
-        echo "$testVOLUME"
+        echo "${testVOLUME}"
         echo "FAILED - These VOLUME lines should not be existed!!!"
         exit 1
     fi
 }
 
 build_image(){
-    _do docker login -u="$DOCKER_USERNAME" -p="$DOCKER_PASSWORD"
-    _do docker build -t apm .
-    testBuildImage=$(docker images | grep apm)
-    if [ -z "$testBuildImage" ]; then 
+    _do docker login -u="${DOCKER_USERNAME}" -p="${DOCKER_PASSWORD}"
+    _do docker build -t ${DOCKER_IMAGE_NAME} .
+    testBuildImage=$(docker images | grep ${DOCKER_IMAGE_NAME})
+    if [ -z "${testBuildImage}" ]; then 
         echo "FAILED - Build fail!!!"
         exit 1
     else
-        echo "$testBuildImage"
+        echo "${testBuildImage}"
         echo "PASSED - Build Successfully!!!."
     fi
 }
 
 setTag_push_rm(){
-    _do docker tag apm $DOCKER_USERNAME/apm:"$TAG"
+    _do docker tag ${DOCKER_IMAGE_NAME} ${DOCKER_USERNAME}/apm:"${TAG}"
     testBuildImage=$(docker images | grep "$TAG")
-    if [ -z "$testBuildImage" ]; then 
+    if [ -z "${testBuildImage}" ]; then 
         echo "FAILED - Set TAG Failed!!!"
         exit 1
     else
-        echo "$testBuildImage"
+        echo "${testBuildImage}"
         echo "PASSED - Set TAG Successfully!."
     fi
-    _do docker push $DOCKER_USERNAME/apm:"$TAG"
-    _do docker rm $DOCKER_USERNAME/apm:"$TAG"
+    _do docker push ${DOCKER_USERNAME}/${DOCKER_IMAGE_NAME}:"${TAG}"
+    echo "PASSED - Pushed  ${DOCKER_USERNAME}/${DOCKER_IMAGE_NAME}:${TAG} Successfully!."
+    echo "Before rm - docker images"
+    _do docker images
+    _do docker rm $DOCKER_USERNAME/${DOCKER_IMAGE_NAME}:"$TAG"
+    echo "After rm - docker images"
     _do docker images
 }
 
@@ -123,30 +128,30 @@ build_image
 echo "================================================="
 
 echo "Stage3 - Set Tag and Push"
-echo "Build Number: $TRAVIS_BUILD_NUMBER"
-echo "TRAVIS_EVENT_TYPE:$TRAVIS_EVENT_TYPE"
-echo "TRAVIS_COMMIT_MESSAGE:$TRAVIS_COMMIT_MESSAGE"
+echo "Build Number: ${TRAVIS_BUILD_NUMBER}"
+echo "TRAVIS_EVENT_TYPE:${TRAVIS_EVENT_TYPE}"
+echo "TRAVIS_COMMIT_MESSAGE:$}TRAVIS_COMMIT_MESSAGE}"
 
 if [ "$TRAVIS_EVENT_TYPE" == "push" ]; then
     MegerPull="Meger Pull"
     Version="Version:"
     pushed="false"
-    if [[ $TRAVIS_COMMIT_MESSAGE == $Version* ]]; then
+    if [[ ${TRAVIS_COMMIT_MESSAGE} == $Version* ]]; then
             TAG="0.1"
             setTag_push_rm
             pushed="true"
     fi 
-    if [[ $TRAVIS_COMMIT_MESSAGE == $MegerPull* ]]; then
+    if [[ ${TRAVIS_COMMIT_MESSAGE} == $MegerPull* ]]; then
         TAG="latest"
         setTag_push_rm
         pushed="true"       
     fi
-    if [ "$pushed" == "false" ]; then
-        TAG="$TRAVIS_BUILD_NUMBER"
+    if [ "${pushed}" == "false" ]; then
+        TAG="${TRAVIS_BUILD_NUMBER}"
         setTag_push_rm
     fi
 else    
-    TAG="$TRAVIS_BUILD_NUMBER"
+    TAG="${TRAVIS_BUILD_NUMBER}"
     setTag_push_rm
 fi
 
@@ -155,8 +160,8 @@ fi
 echo "================================================="
 
 echo "Stage4 - PULL and Verify"
-_do docker run -d --rm -p 80:80 $DOCKER_USERNAME/:"$TAG"
-testBuildImage=$(docker images | grep "$TAG")
+_do docker run -d -p 80:80 $DOCKER_USERNAME/${DOCKER_IMAGE_NAME}:"$TAG"
+testBuildImage=$(docker images | grep "${TAG}")
     if [ -z "$testBuildImage" ]; then 
         echo "FAILED - Docker pull and run Failed!!!"
         exit 1
@@ -164,6 +169,11 @@ testBuildImage=$(docker images | grep "$TAG")
         echo "$testBuildImage"
         echo "PASSED - SetDocker pull and run Successfully!. You can manually verify it!"
     fi
+echo "Before rm - docker images"
+_do docker images
+_do docker rm $DOCKER_USERNAME/${DOCKER_IMAGE_NAME}:"$TAG"
+echo "After rm - docker images"
+_do docker images
 echo "================================================="
 
 
