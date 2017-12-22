@@ -62,8 +62,7 @@ echo "TRAVIS_TAG: $TRAVIS_TAG"
 # If script run to error, exist -1;
 function _do() 
 {
-#        "$@" || { alert "exec failed: ""$@"; exit -1; }
-        "$@" || { echo "$@"; exit -1; }
+        "$@" || { echo "exec failed: ""$@"; exit -1; }
 }
 
 test_Dockerfile(){
@@ -87,8 +86,8 @@ test_Dockerfile(){
 }
 
 build_image(){
-    docker login -u="$DOCKER_USERNAME" -p="$DOCKER_PASSWORD"
-    docker build -t apm .
+    _do docker login -u="$DOCKER_USERNAME" -p="$DOCKER_PASSWORD"
+    _do docker build -t apm .
     testBuildImage=$(docker images | grep apm)
     if [ -z "$testBuildImage" ]; then 
         echo "FAILED - Build fail!!!"
@@ -101,7 +100,7 @@ build_image(){
 
 setTag_push_rm(){
     _do docker tag apm $DOCKER_USERNAME/apm:"$TAG"
-    _do testBuildImage=$(docker images | grep "$TAG")
+    testBuildImage=$(docker images | grep "$TAG")
     if [ -z "$testBuildImage" ]; then 
         echo "FAILED - Set TAG Failed!!!"
         exit 1
@@ -156,8 +155,8 @@ fi
 echo "================================================="
 
 echo "Stage4 - PULL and Verify"
-docker run -d --rm -p 80:80 $DOCKER_USERNAME/:"$TAG"
-testBuildImage=$(docker images | grep "$TRAVIS_BUILD_NUMBER")
+_do docker run -d --rm -p 80:80 $DOCKER_USERNAME/:"$TAG"
+testBuildImage=$(docker images | grep "$TAG")
     if [ -z "$testBuildImage" ]; then 
         echo "FAILED - Docker pull and run Failed!!!"
         exit 1
