@@ -63,7 +63,7 @@ echo "TRAVIS_TAG: $TRAVIS_TAG"
 function _do() 
 {
 #        "$@" || { alert "exec failed: ""$@"; exit -1; }
-        "$@" || { exit -1; }
+        "$@" || { echo "$@"; exit -1; }
 }
 
 test_Dockerfile(){
