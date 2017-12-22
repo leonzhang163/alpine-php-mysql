@@ -112,10 +112,10 @@ setTag_push_rm(){
     fi
     _do docker push "${DOCKER_USERNAME}"/"${DOCKER_IMAGE_NAME}":"${TAG}"
     echo "PASSED - Pushed  ${DOCKER_USERNAME}/${DOCKER_IMAGE_NAME}:${TAG} Successfully!."
-    echo "Before rm - docker images"
+    echo "Before rmi - docker images"
     _do docker images
-    _do docker rm "${DOCKER_USERNAME}"/"${DOCKER_IMAGE_NAME}":"${TAG}"
-    echo "After rm - docker images"
+    _do docker rmi "${DOCKER_USERNAME}"/"${DOCKER_IMAGE_NAME}":"${TAG}"
+    echo "After rmi - docker images"
     _do docker images
 }
 
@@ -162,20 +162,16 @@ fi
 echo "================================================="
 
 echo "Stage4 - PULL and Verify"
-_do docker run -d -p 80:80 $DOCKER_USERNAME/${DOCKER_IMAGE_NAME}:"$TAG"
+_do docker run -d --rm -p 80:80 $DOCKER_USERNAME/${DOCKER_IMAGE_NAME}:"$TAG"
 testBuildImage=$(docker images | grep "${TAG}")
     if [ -z "$testBuildImage" ]; then 
         echo "FAILED - Docker pull and run Failed!!!"
+        docker images
         exit 1
     else
         echo "$testBuildImage"
         echo "PASSED - SetDocker pull and run Successfully!. You can manually verify it!"
     fi
-echo "Before rm - docker images"
-_do docker images
-_do docker rm $DOCKER_USERNAME/${DOCKER_IMAGE_NAME}:"$TAG"
-echo "After rm - docker images"
-_do docker images
 echo "================================================="
 
 
