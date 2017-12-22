@@ -132,12 +132,12 @@ if [ "$TRAVIS_EVENT_TYPE" == "push" ]; then
     MegerPull="Meger Pull"
     Version="Version:"
     pushed="false"
-    if [[ $TRAVIS_COMMIT_MESSAGE == $Version* ]]; then
+    if [ $TRAVIS_COMMIT_MESSAGE == $Version* ]; then
             TAG="0.1"
             setTag_push_rm()
             pushed="true"
     fi 
-    if [[ $TRAVIS_COMMIT_MESSAGE == $MegerPull* ]]; then
+    if [ $TRAVIS_COMMIT_MESSAGE == $MegerPull* ]; then
         TAG="latest"
         setTag_push_rm()
         pushed="true"       
