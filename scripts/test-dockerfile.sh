@@ -135,16 +135,16 @@ echo "TRAVIS_COMMIT_MESSAGE: ${TRAVIS_COMMIT_MESSAGE}"
 
 if [ "$TRAVIS_EVENT_TYPE" == "push" ]; then
     MegerPull="Merge pull"
-    Version="Version:"
     pushed="false"
     # get the line which contains "Version" form commit message.
     version=$(echo "${TRAVIS_COMMIT_MESSAGE}" | grep "Version") 
     if [ ! -z "${version}" ]; then
             # remove left chars since ":"
-            TAG=${version#*:} 
+            TAG=${version##*:} 
             setTag_push_rm
             pushed="true"
     fi 
+    # commit message start with "Merge pull"
     if [[ ${TRAVIS_COMMIT_MESSAGE} == $MegerPull* ]]; then
         TAG="latest"
         setTag_push_rm
@@ -170,7 +170,7 @@ testBuildImage=$(docker images | grep "${TAG}")
         exit 1
     else
         echo "$testBuildImage"
-        echo "PASSED - SetDocker pull and run Successfully!. You can manually verify it!"
+        echo "PASSED - Docker image pull and run Successfully!. You can manually verify it!"
     fi
 echo "================================================="
 
