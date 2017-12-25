@@ -87,7 +87,7 @@ test_Dockerfile(){
 }
 
 build_image(){
-    _do docker login -u="${DOCKER_USERNAME}" -p="${DOCKER_PASSWORD}"
+    echo "${DOCKER_PASSWORD}" | _do docker login -u="${DOCKER_USERNAME}" --password-stdin
     _do docker build -t "${DOCKER_IMAGE_NAME}" .
     testBuildImage=$(docker images | grep "${DOCKER_IMAGE_NAME}")
     if [ -z "${testBuildImage}" ]; then 
@@ -141,10 +141,11 @@ if [ "$TRAVIS_EVENT_TYPE" == "push" ]; then
     version=$(echo "${TRAVIS_COMMIT_MESSAGE}" | grep "Version") 
     if [ -n "${version}" ]; then
             # remove left chars since ":"
-            TAG=${version#*:} 
+            TAG=${version##*:} 
             setTag_push_rm
             pushed="true"
     fi 
+    # commit message start with "Merge pull"
     if [[ ${TRAVIS_COMMIT_MESSAGE} == $MegerPull* ]]; then
         TAG="latest"
         setTag_push_rm
@@ -183,7 +184,7 @@ testBuildImage=$(docker images | grep "${TAG}")
         exit 1
     else
         echo "$testBuildImage"
-        echo "PASSED - SetDocker pull and run Successfully!. You can manually verify it!"
+        echo "PASSED - Docker image pull and run Successfully!. You can manually verify it!"
     fi
 echo "================================================="
 
