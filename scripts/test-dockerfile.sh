@@ -133,13 +133,13 @@ echo "Build Number: ${TRAVIS_BUILD_NUMBER}"
 echo "TRAVIS_EVENT_TYPE: ${TRAVIS_EVENT_TYPE}"
 echo "TRAVIS_COMMIT_MESSAGE: ${TRAVIS_COMMIT_MESSAGE}"
 
+pushed="false"
 if [ "$TRAVIS_EVENT_TYPE" == "push" ]; then
     MegerPull="Merge pull"
-    Version="Version:"
-    pushed="false"
+    Version="Version:"    
     # get the line which contains "Version" form commit message.
     version=$(echo "${TRAVIS_COMMIT_MESSAGE}" | grep "Version") 
-    if [ ! -z "${version}" ]; then
+    if [ -n "${version}" ]; then
             # remove left chars since ":"
             TAG=${version#*:} 
             setTag_push_rm
@@ -149,14 +149,27 @@ if [ "$TRAVIS_EVENT_TYPE" == "push" ]; then
         TAG="latest"
         setTag_push_rm
         pushed="true"       
+    fi    
+else
+    # this is a PR.
+    SignOff="#sign-off"
+    signoff=$(echo "${TRAVIS_COMMIT_MESSAGE}" | grep "${SignOff}")
+    # if commit message of this PR contains "#sign-off", set tag as latest, push.
+    if [ -n "${signoff}" ]; then
+        TAG="latest"
+        setTag_push_rm
+        pushed="true"
     fi
-    if [ "${pushed}" == "false" ]; then
+    # if commit message of this PR contains version tag, set tag accordly, push.
+    if [! "${signoff}" == "${SignOff}"]    
+        TAG=${signoff#*:}
+        setTag_push_rm
+        pushed="true" 
+    fi    
+fi
+if [ "${pushed}" == "false" ]; then
         TAG="${TRAVIS_BUILD_NUMBER}"
         setTag_push_rm
-    fi
-else    
-    TAG="${TRAVIS_BUILD_NUMBER}"
-    setTag_push_rm
 fi
 
 echo "================================================="
