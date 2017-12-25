@@ -87,7 +87,7 @@ test_Dockerfile(){
 }
 
 build_image(){
-    _do docker login -u="${DOCKER_USERNAME}" -p="${DOCKER_PASSWORD}"
+    echo "${DOCKER_PASSWORD}" | _do docker login -u="${DOCKER_USERNAME}" --password-stdin
     _do docker build -t "${DOCKER_IMAGE_NAME}" .
     testBuildImage=$(docker images | grep "${DOCKER_IMAGE_NAME}")
     if [ -z "${testBuildImage}" ]; then 
