@@ -162,7 +162,7 @@ else
         pushed="true"
     fi
     # if commit message of this PR contains version tag, set tag accordly, push.
-    if [! "${signoff}" == "${SignOff}"]; then    
+    if [test "${signoff}"!="${SignOff}"]; then    
         TAG=${signoff#*:}
         setTag_push_rm
         pushed="true" 
