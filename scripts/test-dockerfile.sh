@@ -112,11 +112,11 @@ setTag_push_rm(){
     fi
     _do docker push "${DOCKER_USERNAME}"/"${DOCKER_IMAGE_NAME}":"${TAG}"
     echo "PASSED - Pushed  ${DOCKER_USERNAME}/${DOCKER_IMAGE_NAME}:${TAG} Successfully!."
-    echo "Before rmi - docker images"
+    echo "INFORMATION: Before rmi - docker images"
     _do docker images
     echo "INFORMATION: RM ""${DOCKER_USERNAME}"/"${DOCKER_IMAGE_NAME}":"${TAG}"
     _do docker rmi "${DOCKER_USERNAME}"/"${DOCKER_IMAGE_NAME}":"${TAG}"
-    echo "After rmi - docker images"
+    echo "INFORMATION: After rmi - docker images"
     _do docker images
 }
 
@@ -147,13 +147,13 @@ if [ "$TRAVIS_EVENT_TYPE" == "push" ]; then
             echo "INFORMATION: Commit Message contains version......"
             # remove left chars since ":"
             TAG=${version##*:}
-            echo "INFORMATION: Set TAG as ""${version##*:}""and push......" 
+            echo "INFORMATION: Set TAG as ""${version##*:}"" and push......" 
             setTag_push_rm
             pushed="true"
     fi 
     # commit message start with "Merge pull"
     if [[ ${TRAVIS_COMMIT_MESSAGE} == $MegerPull* ]]; then
-        echo "INFORMATION: Commit Message contains version......"
+        echo "INFORMATION: Commit Message contains Merge pull......"
         TAG="latest"
         echo "INFORMATION: Set TAG as latest and push......"
         setTag_push_rm
@@ -184,7 +184,7 @@ else
         if [ "$signoff" != "$SignOff" ]; then  
             echo "INFORMATION: PR Title contains #sign-off and version......"  
             TAG=${signoff#*:}
-            echo "INFORMATION: Set TAG as ""${signoff#*:}""and push......"
+            echo "INFORMATION: Set TAG as ""${signoff#*:}"" and push......"
             setTag_push_rm
             pushed="true" 
         fi
@@ -199,7 +199,12 @@ fi
 
 echo "================================================="
 echo "Stage4 - PULL and Verify"
+echo "INFORMATION: Start to Pull ""${DOCKER_USERNAME}"/"${DOCKER_IMAGE_NAME}":"${TAG}"
+echo "INFORMATION: Before Pull - docker images"
+_do docker images
 _do docker run -d --rm -p 80:80 $DOCKER_USERNAME/${DOCKER_IMAGE_NAME}:"$TAG"
+echo "INFORMATION: After Pull - docker images"
+_do docker images
 testBuildImage=$(docker images | grep "${TAG}")
     if [ -z "$testBuildImage" ]; then 
         echo "FAILED - Docker pull and run Failed!!!"
