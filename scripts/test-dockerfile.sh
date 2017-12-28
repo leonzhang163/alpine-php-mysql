@@ -173,7 +173,7 @@ else
         echo "signoff:""${signoff}"  
 	    
         # if commit message of this PR contains "#sign-off", set tag as latest, push.
-        if [ ! -z "${testBuildImage}" ]; then
+        if [ ! -z "${signoff}" ]; then
             echo "INFORMATION: PR Title contains #sign-off......"
             # get clear content. Prepare to compare with SignOff
             signoff=${signoff##*' '}     
