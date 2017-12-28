@@ -173,7 +173,7 @@ else
         echo "signoff:""${signoff}"  
 	    
         # if commit message of this PR contains "#sign-off", set tag as latest, push.
-        if [ ! -z "${signoff}" ]; then
+        if [ "${signoff}" != '']; then
             echo "INFORMATION: PR Title contains #sign-off......"
             # get clear content. Prepare to compare with SignOff
             signoff=${signoff##*' '}     
@@ -183,17 +183,16 @@ else
 	        echo "INFORMATION: Set TAG as latest and push......"
             setTag_push_rm
             pushed="true"
-        fi
-        # if commit message of this PR contains version tag, set tag and push.
-        if [ "$signoff" != "$SignOff" ]; then  
-            echo "INFORMATION: PR Title contains #sign-off and version......"  
-            TAG=${signoff#*:}
-            echo "INFORMATION: Set TAG as ""${signoff#*:}"" and push......"
-            setTag_push_rm
-            pushed="true" 
-        fi
-    fi
-        
+            # if commit message of this PR contains version tag, set tag and push.
+            if [ "$signoff" != "$SignOff" ]; then  
+                echo "INFORMATION: PR Title contains #sign-off and version......"  
+                TAG=${signoff#*:}
+                echo "INFORMATION: Set TAG as ""${signoff#*:}"" and push......"
+                setTag_push_rm
+                pushed="true" 
+            fi
+        fi        
+    fi        
 fi
 if [ "${pushed}" == "false" ]; then
         TAG="${TRAVIS_BUILD_NUMBER}"
