@@ -166,7 +166,11 @@ else
         SignOff="#sign-off"
         PR_TITLE=$(curl https://api.github.com/repos/"${TRAVIS_REPO_SLUG}"/pulls/"${TRAVIS_PULL_REQUEST}" | grep '"title":')
         echo "PR_TITLE:""${PR_TITLE}"
-        signoff=$(echo "${PR_TITLE}" | grep "${SignOff}")  
+        PR_COMMENTS=$(curl https://api.github.com/repos/"${TRAVIS_REPO_SLUG}"/issues/"${TRAVIS_PULL_REQUEST}"/comments | grep '"body":')
+        echo "PR_COMMENTS:"
+        echo "${PR_COMMENTS}"
+        signoff=$(echo "${PR_COMMENTS}" | grep "${SignOff}")
+        echo "signoff:""${signoff}"  
 	    
         # if commit message of this PR contains "#sign-off", set tag as latest, push.
         if [ -n "${signoff}" ]; then
